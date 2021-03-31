@@ -22,3 +22,6 @@ Auth::routes();
 Route::get('/home', 'App\Http\Controllers\HomeController@index')->name('home');
 
 Route::get('/calendar', 'App\Http\Controllers\CalendarController@index')->name('calendar');
+Route::post('/calendar', 'App\Http\Controllers\CalendarController@store');
+Route::put('/calendar/{calendar}', 'App\Http\Controllers\CalendarController@update');
+Route::delete('/calendar/{calendar}', 'App\Http\Controllers\CalendarController@destroy');

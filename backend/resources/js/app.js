@@ -4,7 +4,9 @@
  * building robust, powerful web applications using Vue and Laravel.
  */
 
-require('./bootstrap');
+// require('./bootstrap');
+import './bootstrap';
+import router from './routes';
 
 window.Vue = require('vue').default;
 
@@ -21,6 +23,7 @@ window.Vue = require('vue').default;
 
 Vue.component('example-component', require('./components/ExampleComponent.vue').default);
 Vue.component('calendar', require('./components/Calendar.vue').default);
+Vue.component('home', require('./components/Home.vue').default);
 
 /**
  * Next, we will create a fresh Vue application instance and attach it to
@@ -30,4 +33,6 @@ Vue.component('calendar', require('./components/Calendar.vue').default);
 
 const app = new Vue({
     el: '#app',
+
+    router
 });

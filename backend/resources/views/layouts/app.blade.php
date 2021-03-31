@@ -34,10 +34,8 @@
                     <!-- Left Side Of Navbar -->
                     <ul class="navbar-nav ml-4 mr-auto">
                         <li class="mr-2"><a href="{{ route('calendar') }}">Calendar</a></li>
-                        <li class="mr-2"><a href="{{ route('calendar') }}">Calendar</a></li>
-                        <li class="mr-2"><a href="{{ route('calendar') }}">Calendar</a></li>
-                        <li class="mr-2"><a href="{{ route('calendar') }}">Calendar</a></li>
-                        <li class="mr-2"><a href="{{ route('calendar') }}">Calendar</a></li>
+                        <router-link class="mr-2" to="/" exact>Home</router-link>
+                        <router-link class="mr-2" to="/calendar" exact>Calendar</router-link>
                     </ul>
 
                     <!-- Right Side Of Navbar -->
@@ -81,6 +79,7 @@
 
         <main class="py-4">
             @yield('content')
+            <router-view></router-view>
         </main>
     </div>
 </body>
