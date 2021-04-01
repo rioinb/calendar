@@ -3,11 +3,12 @@ import FullCalendar from '@fullcalendar/vue'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import interactionPlugin from '@fullcalendar/interaction'
 import timeGridPlugin from '@fullcalendar/timegrid'
-
+import momentPlugin from '@fullcalendar/moment'
 
 export default {
     components: {
-        FullCalendar // make the <FullCalendar> tag available
+        FullCalendar, // make the <FullCalendar> tag available
+
     },
 
     data() {
@@ -19,6 +20,7 @@ export default {
                     event_name: "",
                     start_date: "",
                     end_date: ""
+                    // defaultAllDay: true
                 },
             addingMode: true,
             indexToUpdate: "",
@@ -27,27 +29,20 @@ export default {
                 plugins: [
                 dayGridPlugin,
                 timeGridPlugin,
-                interactionPlugin // needed for dateClick
+                interactionPlugin, // needed for dateClick
+                momentPlugin
                 ],
 
-            events: [
-                {
-                    id: 1,
-                    event_name: "test",
-                    start_date: "2021-03-29",
-                    end_date: "2021-03-30",
-                    created_at: "2021-03-29 02:31:53",
-                    updated_at: "2021-03-29 02:31:53",
-                }
-            ],
-
-
+                events: [],
 
                 headerToolbar: {
                 left: 'prev,next today',
                 center: 'title',
                 right: 'dayGridMonth,timeGridWeek,timeGridDay'
                 },
+
+                // titleFormat: 'MMMM D, YYYY', // you can now use moment format strings!
+
                 initialView: 'dayGridMonth',
                 editable: true,
                 selectable: true,
@@ -57,6 +52,9 @@ export default {
                 select: this.handleDateSelect,
                 eventClick: this.showEvent,
                 eventsSet: this.handleEvents,
+                defaultAllDay: true,
+                eventDrop: this.eventDrop,
+
             },
         }
     },
@@ -67,30 +65,45 @@ export default {
 
     methods: {
 
+        eventDrop(info){
+
+            // console.log(info);
+            this.indexToUpdate = info.event.id; //変更したいeventのidを指定
+            this.newEvent = {
+                event_name: info.event.title, //タイトルはそのまま代入し直す
+                start_date: info.event.startStr, //drop先の日付に変更
+                end_date: info.event.endStr, //drop先の日付に変更
+            }
+
+            axios.put("/calendar/" + this.indexToUpdate, {
+            ...this.newEvent
+            });
+
+        },
+
         createEventId() {
             return String(this.eventGuid++)
         },
 
-        handleWeekendsToggle() {
-        this.calendarOptions.weekends = !this.calendarOptions.weekends // update a property
+
+        handleDateSelect(selectInfo) {
+        let title = prompt('Please enter a new title for your event')
+        let calendarApi = selectInfo.view.calendar
+
+        calendarApi.unselect() // clear date selection
+
+        if (title) {
+            this.newEvent = {
+            event_name: title,
+            start_date: selectInfo.startStr,
+            end_date: selectInfo.endStr,
+            }
+
+            this.addNewEvent()
+        }
+
+
         },
-
-        // handleDateSelect(selectInfo) {
-        // let title = prompt('Please enter a new title for your event')
-        // let calendarApi = selectInfo.view.calendar
-
-        // calendarApi.unselect() // clear date selection
-
-        // if (title) {
-        //     calendarApi.addEvent({
-        //     id: this.createEventId(),
-        //     title,
-        //     start: selectInfo.startStr,
-        //     end: selectInfo.endStr,
-        //     allDay: selectInfo.allDay
-        //     })
-        // }
-        // },
 
         // handleEventClick(clickInfo) {
         //     if (confirm(`Are you sure you want to delete the event '${clickInfo.event.title}'`)) {
@@ -111,9 +124,14 @@ export default {
 
         addNewEvent() {
             axios
-                .post("/calendar", {
-                ...this.newEvent
-                })
+                .post("/calendar",
+                {...this.newEvent}
+                    // this.newEvent = {
+                    //     event_name,
+                    //     start_date,
+                    //     end_date: new Date(+end_date+60*60*24*1000)
+                    //     }
+                )
                 .then(resp => {
                 this.getEvents(); // update our list of events
                 this.resetForm(); // clear newEvent properties (e.g. title, start_date and end_date)
@@ -187,24 +205,37 @@ export default {
             <form @submit.prevent>
               <div class="form-group">
                 <label for="event_name">Event Name</label>
-                <input type="text" id="event_name" class="form-control" v-model="newEvent.event_name">
+                <input
+                    type="text"
+                    id="event_name"
+                    class="form-control"
+                    v-model="newEvent.event_name"
+                    required
+                >
               </div>
               <div class="row">
                 <div class="col-md-6">
                   <div class="form-group">
                     <label for="start_date">Start Date</label>
                     <input
-                      type="date"
-                      id="start_date"
-                      class="form-control"
-                      v-model="newEvent.start_date"
+                        type="datetime-local"
+                        id="start_date"
+                        class="form-control"
+                        v-model="newEvent.start_date"
+                        required
                     >
                   </div>
                 </div>
                 <div class="col-md-6">
                   <div class="form-group">
                     <label for="end_date">End Date</label>
-                    <input type="date" id="end_date" class="form-control" v-model="newEvent.end_date">
+                    <input
+                        type="datetime-local"
+                        id="end_date"
+                        class="form-control"
+                        v-model="newEvent.end_date"
+                        required
+                    >
                   </div>
                 </div>
                 <div class="col-md-6 mb-4" v-if="addingMode">
@@ -220,6 +251,7 @@ export default {
               </div>
             </form>
         </div>
+
         <div class="container">
             <FullCalendar :options="calendarOptions" @eventClick="showEvent"/>
         </div>

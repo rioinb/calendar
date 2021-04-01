@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -17,11 +18,16 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+
 Auth::routes();
 
-Route::get('/home', 'App\Http\Controllers\HomeController@index')->name('home');
+Route::group(['middleware' => 'auth'], function(){
 
-Route::get('/calendar', 'App\Http\Controllers\CalendarController@index')->name('calendar');
-Route::post('/calendar', 'App\Http\Controllers\CalendarController@store');
-Route::put('/calendar/{calendar}', 'App\Http\Controllers\CalendarController@update');
-Route::delete('/calendar/{calendar}', 'App\Http\Controllers\CalendarController@destroy');
+    Route::get('/home', 'App\Http\Controllers\HomeController@index')->name('home');
+    Route::get('/calendar', 'App\Http\Controllers\CalendarController@index')->name('calendar');
+    Route::post('/calendar', 'App\Http\Controllers\CalendarController@store');
+    // Route::put('/calendar', 'App\Http\Controllers\CalendarController@update');
+    Route::put('/calendar/{calendar}', 'App\Http\Controllers\CalendarController@update');
+    Route::delete('/calendar/{calendar}', 'App\Http\Controllers\CalendarController@destroy');
+
+});
