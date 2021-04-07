@@ -7,10 +7,10 @@ let routes = [
     //     component: require('./components/Home.vue').default
     // },
 
-    {
-        path: '/calendar',
-        component: require('./components/Calendar.vue').default
-    },
+    // {
+    //     path: '/calendar',
+    //     component: require('./components/Calendar.vue').default
+    // },
 
     // {
     //     path: '/',

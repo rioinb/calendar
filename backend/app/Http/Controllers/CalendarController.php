@@ -27,7 +27,10 @@ class CalendarController extends Controller
      */
     public function index()
     {
-        return CalendarResource::collection(Calendar::all());
+        // $id = auth()->user()->id;
+        // return CalendarResource::collection(Calendar::where('owner_id', $id)->get());
+        // return CalendarResource::collection(Calendar::all());
+        return auth()->user()->accessibleCalendars();
     }
 
     /**
@@ -48,7 +51,13 @@ class CalendarController extends Controller
      */
     public function store(Request $request)
     {
-        $new_calendar = Calendar::create($request->all());
+        $attributes = request()->validate([
+            'event_name' => 'required',
+            'start_date' => 'required',
+            'end_date' => ''
+        ]);
+
+        $new_calendar = auth()->user()->calendars()->create($attributes);
         return response()->json([
             'data' => new CalendarResource($new_calendar),
             'message' => 'Successfully added new event!',
@@ -87,7 +96,13 @@ class CalendarController extends Controller
      */
     public function update(Request $request, Calendar $calendar)
     {
-        $calendar->update($request->all());
+        $attributes = request()->validate([
+            'event_name' => 'required',
+            'start_date' => 'required',
+            'end_date' => ''
+        ]);
+
+        $calendar->update($attributes);
         return response()->json([
             'data' => new CalendarResource($calendar),
             'message' => 'Successfully updated event!',

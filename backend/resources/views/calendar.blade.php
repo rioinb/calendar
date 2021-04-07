@@ -2,6 +2,11 @@
 
 @section('content')
 <div class="container">
-    <calendar></calendar>
+    <calendar :user = {{ Auth::user() }}></calendar>
 </div>
+
+{{-- <script>
+    const userId = {{ auth()->user()->id }};
+    console.log(userId);
+</script> --}}
 @endsection

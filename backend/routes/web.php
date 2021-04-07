@@ -19,9 +19,15 @@ Route::get('/', function () {
 });
 
 
+
 Auth::routes();
 
 Route::group(['middleware' => 'auth'], function(){
+
+
+Route::get('/cal', function () {
+    return view('calendar');
+});
 
     Route::get('/home', 'App\Http\Controllers\HomeController@index')->name('home');
     Route::get('/calendar', 'App\Http\Controllers\CalendarController@index')->name('calendar');

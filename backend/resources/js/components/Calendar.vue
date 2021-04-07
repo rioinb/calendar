@@ -11,15 +11,21 @@ export default {
 
     },
 
+    props: [
+        'user'
+    ],
+
     data() {
         return {
 
             eventGuid: 0,
 
             newEvent: {
+                    owner: "",
                     event_name: "",
                     start_date: "",
-                    end_date: ""
+                    end_date: "",
+                    members: "",
                     // defaultAllDay: true
                 },
             addingMode: true,
@@ -52,12 +58,18 @@ export default {
                 select: this.handleDateSelect,
                 eventClick: this.showEvent,
                 eventsSet: this.handleEvents,
-                defaultAllDay: true,
+                // defaultAllDay: true,
                 eventDrop: this.eventDrop,
+                timeZone: 'local',
 
             },
         }
     },
+
+    computed: {
+
+    },
+
 
     created() {
         this.getEvents();
@@ -97,7 +109,10 @@ export default {
             event_name: title,
             start_date: selectInfo.startStr,
             end_date: selectInfo.endStr,
+            allDay: true,
             }
+            // this.calendarOptions.setAllDay = true;
+            // this.newEvent.setAllDay(true);
 
             this.addNewEvent()
         }
@@ -124,49 +139,52 @@ export default {
 
         addNewEvent() {
             axios
-                .post("/calendar",
-                {...this.newEvent}
-                    // this.newEvent = {
-                    //     event_name,
-                    //     start_date,
-                    //     end_date: new Date(+end_date+60*60*24*1000)
-                    //     }
-                )
+                .post("/calendar",{
+                    ...this.newEvent
+                })
                 .then(resp => {
-                this.getEvents(); // update our list of events
-                this.resetForm(); // clear newEvent properties (e.g. title, start_date and end_date)
+                    this.getEvents(); // update our list of events
+                    this.resetForm(); // clear newEvent properties (e.g. title, start_date and end_date)
                 })
                 .catch(err =>
-                console.log("Unable to add new event!", err.response.data)
+                    console.log("Unable to add new event!", err.response.data)
                 );
         },
 
         showEvent(arg) {
+            // console.log(arg);
             this.addingMode = false;
-            const { id, title, start, end } = this.calendarOptions.events.find(
+            let { id, owner, title, start, end, members  } = this.calendarOptions.events.find(
                 event => event.id === +arg.event.id
             );
             this.indexToUpdate = id;
-            this.newEvent = {
-                event_name: title,
-                start_date: start,
-                end_date: end
+
+                this.newEvent = {
+                    id: id,
+                    owner: owner,
+                    event_name: title,
+                    start_date: start,
+                    end_date: end,
+                    members: members != null ? members : null,
             };
+
         },
 
         updateEvent() {
-            axios
-                .put("/calendar/" + this.indexToUpdate, {
-                ...this.newEvent
-                })
-                .then(resp => {
-                this.resetForm();
-                this.getEvents();
-                this.addingMode = !this.addingMode;
-                })
-                .catch(err =>
-                console.log("Unable to update event!", err.response.data)
+            if (this.newEvent.owner.id === this.user.id) {
+                axios
+                    .put("/calendar/" + this.indexToUpdate, {
+                    ...this.newEvent
+                    })
+                    .then(resp => {
+                    this.resetForm();
+                    this.getEvents();
+                    this.addingMode = !this.addingMode;
+                    })
+                    .catch(err =>
+                    console.log("Unable to update event!", err.response.data)
                 );
+            };
         },
 
         deleteEvent() {
@@ -222,7 +240,6 @@ export default {
                         id="start_date"
                         class="form-control"
                         v-model="newEvent.start_date"
-                        required
                     >
                   </div>
                 </div>
@@ -234,17 +251,27 @@ export default {
                         id="end_date"
                         class="form-control"
                         v-model="newEvent.end_date"
-                        required
                     >
                   </div>
+                </div>
+                <div class="col-md-6">
+                    <p>Owner</p>
+                    <p>{{ newEvent.owner.name }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p>Members: </p>
+                    <ul class="d-flex">
+                        <li class="d-flex mr-2" v-for="member in newEvent.members" :key="member.id">{{ member.name }}</li>
+                    </ul>
                 </div>
                 <div class="col-md-6 mb-4" v-if="addingMode">
                   <button class="btn btn-sm btn-primary" @click="this.addNewEvent">Save Event</button>
                 </div>
+
                 <template v-else>
                   <div class="col-md-6 mb-4">
-                    <button class="btn btn-sm btn-success" @click="updateEvent">Update</button>
-                    <button class="btn btn-sm btn-danger" @click="deleteEvent">Delete</button>
+                    <button class="btn btn-sm btn-success" @click="updateEvent" v-if="this.newEvent.owner.id === this.user.id"　>Update</button>
+                    <button class="btn btn-sm btn-danger" @click="deleteEvent" v-if="this.newEvent.owner.id === this.user.id">Delete</button>
                     <button class="btn btn-sm btn-secondary" @click="addingMode = !addingMode">Cancel</button>
                   </div>
                 </template>

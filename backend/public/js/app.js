@@ -25883,13 +25883,16 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
     FullCalendar: _fullcalendar_vue__WEBPACK_IMPORTED_MODULE_0__.default // make the <FullCalendar> tag available
 
   },
+  props: ['user'],
   data: function data() {
     return {
       eventGuid: 0,
       newEvent: {
+        owner: "",
         event_name: "",
         start_date: "",
-        end_date: "" // defaultAllDay: true
+        end_date: "",
+        members: "" // defaultAllDay: true
 
       },
       addingMode: true,
@@ -25913,11 +25916,13 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
         select: this.handleDateSelect,
         eventClick: this.showEvent,
         eventsSet: this.handleEvents,
-        defaultAllDay: true,
-        eventDrop: this.eventDrop
+        // defaultAllDay: true,
+        eventDrop: this.eventDrop,
+        timeZone: 'local'
       }
     };
   },
+  computed: {},
   created: function created() {
     this.getEvents();
   },
@@ -25948,8 +25953,11 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
         this.newEvent = {
           event_name: title,
           start_date: selectInfo.startStr,
-          end_date: selectInfo.endStr
-        };
+          end_date: selectInfo.endStr,
+          allDay: true
+        }; // this.calendarOptions.setAllDay = true;
+        // this.newEvent.setAllDay(true);
+
         this.addNewEvent();
       }
     },
@@ -25973,12 +25981,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
     addNewEvent: function addNewEvent() {
       var _this2 = this;
 
-      axios.post("/calendar", _objectSpread({}, this.newEvent) // this.newEvent = {
-      //     event_name,
-      //     start_date,
-      //     end_date: new Date(+end_date+60*60*24*1000)
-      //     }
-      ).then(function (resp) {
+      axios.post("/calendar", _objectSpread({}, this.newEvent)).then(function (resp) {
         _this2.getEvents(); // update our list of events
 
 
@@ -25989,35 +25992,45 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
       });
     },
     showEvent: function showEvent(arg) {
+      // console.log(arg);
       this.addingMode = false;
 
       var _this$calendarOptions = this.calendarOptions.events.find(function (event) {
         return event.id === +arg.event.id;
       }),
           id = _this$calendarOptions.id,
+          owner = _this$calendarOptions.owner,
           title = _this$calendarOptions.title,
           start = _this$calendarOptions.start,
-          end = _this$calendarOptions.end;
+          end = _this$calendarOptions.end,
+          members = _this$calendarOptions.members;
 
       this.indexToUpdate = id;
       this.newEvent = {
+        id: id,
+        owner: owner,
         event_name: title,
         start_date: start,
-        end_date: end
+        end_date: end,
+        members: members != null ? members : null
       };
     },
     updateEvent: function updateEvent() {
       var _this3 = this;
 
-      axios.put("/calendar/" + this.indexToUpdate, _objectSpread({}, this.newEvent)).then(function (resp) {
-        _this3.resetForm();
+      if (this.newEvent.owner.id === this.user.id) {
+        axios.put("/calendar/" + this.indexToUpdate, _objectSpread({}, this.newEvent)).then(function (resp) {
+          _this3.resetForm();
 
-        _this3.getEvents();
+          _this3.getEvents();
 
-        _this3.addingMode = !_this3.addingMode;
-      })["catch"](function (err) {
-        return console.log("Unable to update event!", err.response.data);
-      });
+          _this3.addingMode = !_this3.addingMode;
+        })["catch"](function (err) {
+          return console.log("Unable to update event!", err.response.data);
+        });
+      }
+
+      ;
     },
     deleteEvent: function deleteEvent() {
       var _this4 = this;
@@ -26236,17 +26249,18 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var vue_router__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! vue-router */ "./node_modules/vue-router/dist/vue-router.esm.js");
 
 var routes = [// {
-//     path: '/',
-//     name: 'home',
-//     component: require('./components/Home.vue').default
-// },
-{
-  path: '/calendar',
-  component: __webpack_require__(/*! ./components/Calendar.vue */ "./resources/js/components/Calendar.vue").default
-} // {
-//     path: '/',
-//     component: require('./components/Home.vue').default
-// },
+  //     path: '/',
+  //     name: 'home',
+  //     component: require('./components/Home.vue').default
+  // },
+  // {
+  //     path: '/calendar',
+  //     component: require('./components/Calendar.vue').default
+  // },
+  // {
+  //     path: '/',
+  //     component: require('./components/Home.vue').default
+  // },
 ];
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (new vue_router__WEBPACK_IMPORTED_MODULE_0__.default({
   routes: routes
@@ -84237,11 +84251,7 @@ var render = function() {
                       }
                     ],
                     staticClass: "form-control",
-                    attrs: {
-                      type: "datetime-local",
-                      id: "start_date",
-                      required: ""
-                    },
+                    attrs: { type: "datetime-local", id: "start_date" },
                     domProps: { value: _vm.newEvent.start_date },
                     on: {
                       input: function($event) {
@@ -84275,11 +84285,7 @@ var render = function() {
                       }
                     ],
                     staticClass: "form-control",
-                    attrs: {
-                      type: "datetime-local",
-                      id: "end_date",
-                      required: ""
-                    },
+                    attrs: { type: "datetime-local", id: "end_date" },
                     domProps: { value: _vm.newEvent.end_date },
                     on: {
                       input: function($event) {
@@ -84291,6 +84297,29 @@ var render = function() {
                     }
                   })
                 ])
+              ]),
+              _vm._v(" "),
+              _c("div", { staticClass: "col-md-6" }, [
+                _c("p", [_vm._v("Owner")]),
+                _vm._v(" "),
+                _c("p", [_vm._v(_vm._s(_vm.newEvent.owner.name))])
+              ]),
+              _vm._v(" "),
+              _c("div", { staticClass: "col-md-6" }, [
+                _c("p", [_vm._v("Members: ")]),
+                _vm._v(" "),
+                _c(
+                  "ul",
+                  { staticClass: "d-flex" },
+                  _vm._l(_vm.newEvent.members, function(member) {
+                    return _c(
+                      "li",
+                      { key: member.id, staticClass: "d-flex mr-2" },
+                      [_vm._v(_vm._s(member.name))]
+                    )
+                  }),
+                  0
+                )
               ]),
               _vm._v(" "),
               _vm.addingMode
@@ -84306,23 +84335,27 @@ var render = function() {
                   ])
                 : [
                     _c("div", { staticClass: "col-md-6 mb-4" }, [
-                      _c(
-                        "button",
-                        {
-                          staticClass: "btn btn-sm btn-success",
-                          on: { click: _vm.updateEvent }
-                        },
-                        [_vm._v("Update")]
-                      ),
+                      this.newEvent.owner.id === this.user.id
+                        ? _c(
+                            "button",
+                            {
+                              staticClass: "btn btn-sm btn-success",
+                              on: { click: _vm.updateEvent }
+                            },
+                            [_vm._v("Update")]
+                          )
+                        : _vm._e(),
                       _vm._v(" "),
-                      _c(
-                        "button",
-                        {
-                          staticClass: "btn btn-sm btn-danger",
-                          on: { click: _vm.deleteEvent }
-                        },
-                        [_vm._v("Delete")]
-                      ),
+                      this.newEvent.owner.id === this.user.id
+                        ? _c(
+                            "button",
+                            {
+                              staticClass: "btn btn-sm btn-danger",
+                              on: { click: _vm.deleteEvent }
+                            },
+                            [_vm._v("Delete")]
+                          )
+                        : _vm._e(),
                       _vm._v(" "),
                       _c(
                         "button",

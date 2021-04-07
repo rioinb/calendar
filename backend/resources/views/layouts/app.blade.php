@@ -33,8 +33,10 @@
                 <div class="collapse navbar-collapse" id="navbarSupportedContent">
                     <!-- Left Side Of Navbar -->
                     <ul class="navbar-nav ml-4 mr-auto">
-                        <router-link class="mr-2" to="/" exact>Home</router-link>
-                        <router-link class="mr-2" to="/calendar" exact>Calendar</router-link>
+                        <li class="mr-2"><a href="/cal">calendar</a></li>
+                        <li><a href="/home">home</a></li>
+                        {{-- <router-link class="mr-2" to="/" exact>Home</router-link>
+                        <router-link class="mr-2" to="/calendar" exact>Calendar</router-link> --}}
                     </ul>
 
                     <!-- Right Side Of Navbar -->
@@ -77,7 +79,6 @@
         </nav>
 
         <main class="py-4">
-
             @yield('content')
             <router-view></router-view>
         </main>

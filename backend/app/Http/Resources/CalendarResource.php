@@ -16,9 +16,11 @@ class CalendarResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'owner' => $this->owner,
             'title' => $this->event_name,
             'start' => $this->start_date,
             'end' => $this->end_date,
+            'members' => $this->members,
         ];
     }
 }
